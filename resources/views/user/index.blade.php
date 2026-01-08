@@ -46,43 +46,69 @@
         }
 
         var dataUser;
+
         $(document).ready(function () {
             dataUser = $('#table_user').DataTable({
-                // serverSide: true, jika ingin menggunakan server side processing
                 serverSide: true,
+                processing: true,
                 ajax: {
                     "url": "{{ url('user/list') }}",
                     "dataType": "json",
-                    "type": "POST"
+                    "type": "POST",
+                    "headers": {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
                 },
                 columns: [
-                    {
-                        data: "DT_RowIndex",
-                        className: "text-center",
-                        orderable: false,
-                        searchable: false
-                    }, {
-                        data: "username",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    }, {
-                        data: "nama",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    }, {
-                        data: "level.level_nama",
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    }, {
-                        data: "aksi",
-                        className: "",
-                        orderable: false,
-                        searchable: false
-                    }
+                    { data: "DT_RowIndex", className: "text-center", orderable: false, searchable: false },
+                    { data: "username", className: "", orderable: true, searchable: true },
+                    { data: "nama", className: "", orderable: true, searchable: true },
+                    { data: "level.level_nama", className: "", orderable: false, searchable: false },
+                    { data: "aksi", className: "", orderable: false, searchable: false }
                 ]
+            });
+
+            // --- PERUBAHAN UTAMA DISINI (EVENT DELEGATION) ---
+            // Script ini menempel pada #myModal dan memantau submit form di dalamnya
+            $('#myModal').on('submit', '#form-edit, #form-delete', function(e) {
+                e.preventDefault(); // Kunci: Mencegah Redirect
+                
+                var form = $(this); // Form yang sedang disubmit (bisa edit atau delete)
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: form.attr('method'), // POST atau DELETE sesuai HTML
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.status) {
+                            $('#myModal').modal('hide');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message
+                            });
+                            // Reload tabel
+                            dataUser.ajax.reload();
+                        } else {
+                            $('.error-text').text('');
+                            $.each(response.msgField, function(prefix, val) {
+                                $('#error-' + prefix).text(val[0]);
+                            });
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: 'Gagal menghubungi server.'
+                        });
+                    }
+                });
             });
         });
     </script>

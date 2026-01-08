@@ -1,8 +1,10 @@
 @extends('layouts.template')
+
 @section('content')
 <div class="card card-outline card-primary">
     <div class="card-header">
         <h3 class="card-title">{{ $page->title }}</h3>
+        <div class="card-tools"></div>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url('level') }}" class="form-horizontal">

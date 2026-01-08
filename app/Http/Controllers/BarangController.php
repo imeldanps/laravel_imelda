@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class BarangController extends Controller
 {
@@ -33,6 +35,42 @@ class BarangController extends Controller
             'kategori' => $kategori,
             'page' => $page,
         ]);
+    }
+
+    public function create()
+    {
+        $breadcrumb = (object) [
+            'title' => 'Tambah Barang',
+            'list'  => ['Home', 'Barang', 'Tambah']
+        ];
+        $page = (object) [
+            'title' => 'Tambah barang baru'
+        ];
+        $kategori = KategoriModel::all(); // Ambil data kategori untuk dropdown
+        $activeMenu = 'barang';
+
+        return view('barang.create', ['breadcrumb' => $breadcrumb, 'page' => $page, 'kategori' => $kategori, 'activeMenu' => $activeMenu]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'barang_kode' => 'required|string|min:3|unique:m_barang,barang_kode',
+            'barang_nama' => 'required|string|max:100',
+            'harga_beli'  => 'required|integer',
+            'harga_jual'  => 'required|integer',
+            'kategori_id' => 'required|integer',
+        ]);
+
+        BarangModel::create([
+            'barang_kode' => $request->barang_kode,
+            'barang_nama' => $request->barang_nama,
+            'harga_beli'  => $request->harga_beli,
+            'harga_jual'  => $request->harga_jual,
+            'kategori_id' => $request->kategori_id,
+        ]);
+
+        return redirect('/barang')->with('success', 'Data barang berhasil disimpan');
     }
 
     public function list(Request $request)
@@ -66,7 +104,7 @@ class BarangController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
+                'file_barang' => ['required', 'mimes:xlsx,xls', 'max:1024']
             ];
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
@@ -116,16 +154,20 @@ class BarangController extends Controller
         return redirect('/');
     }
 
+    // --- EXPORT EXCEL (PERBAIKAN DATA UPDATE) ---
     public function export_excel()
     {
+        // 1. Ambil data TERBARU dari database
         $barang = BarangModel::select('kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual')
             ->orderBy('kategori_id')
             ->with('kategori')
             ->get();
 
+        // 2. Buat Spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
+        // 3. Set Header Kolom
         $sheet->setCellValue('A1', 'No');
         $sheet->setCellValue('B1', 'Kode Barang');
         $sheet->setCellValue('C1', 'Nama Barang');
@@ -133,58 +175,60 @@ class BarangController extends Controller
         $sheet->setCellValue('E1', 'Harga Jual');
         $sheet->setCellValue('F1', 'Kategori');
 
-        $sheet->getStyle('A1:F1')->getFont()->setBold(true); // Bold header
-
+        // 4. Isi Data
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true); // Bold Header
+        
         $no = 1;
-        $baris = 2;
-
+        $baris = 2; // Mulai dari baris ke-2
         foreach ($barang as $key => $value) {
             $sheet->setCellValue('A' . $baris, $no);
             $sheet->setCellValue('B' . $baris, $value->barang_kode);
             $sheet->setCellValue('C' . $baris, $value->barang_nama);
             $sheet->setCellValue('D' . $baris, $value->harga_beli);
             $sheet->setCellValue('E' . $baris, $value->harga_jual);
-            $sheet->setCellValue('F' . $baris, $value->kategori->kategori_nama); // Ambil nama kategori
+            $sheet->setCellValue('F' . $baris, $value->kategori->kategori_nama);
             $baris++;
             $no++;
         }
 
+        // 5. Auto Size Kolom
         foreach (range('A', 'F') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
-
+        
         $sheet->setTitle('Data Barang');
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $filename = 'Data Barang ' . date('Y-m-d H:i:s') . '.xlsx';
 
+        // 6. Download File (Header Anti-Cache)
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'Data_Barang_' . date('Y-m-d_H-i-s') . '.xlsx';
+        
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-        header('Cache-Control: max-age=1');
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
-        header('Cache-Control: cache, must-revalidate');
-        header('Pragma: public');
-
+        header('Cache-Control: max-age=0'); // Pastikan tidak di-cache
+        
         $writer->save('php://output');
-        exit;
     }
 
+    // --- EXPORT PDF (PERBAIKAN CRASH / LOADING) ---
     public function export_pdf()
     {
+        // Ambil data
         $barang = BarangModel::select('kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual')
             ->orderBy('kategori_id')
             ->orderBy('barang_kode')
             ->with('kategori')
             ->get();
 
-        // Load View khusus PDF
+        // Load View PDF
+        // Pastikan view-nya bernama 'barang.export_pdf'
         $pdf = Pdf::loadView('barang.export_pdf', ['barang' => $barang]);
+        
+        // Setup Kertas
         $pdf->setPaper('a4', 'portrait');
-        $pdf->setOption("isRemoteEnabled", true);
-        $pdf->render();
-
-        return $pdf->stream('Data Barang ' . date('Y-m-d H:i:s') . '.pdf');
+        $pdf->setOption("isRemoteEnabled", true); // Aktifkan render gambar
+        
+        // Stream (Buka di browser) atau Download
+        return $pdf->stream('Data_Barang_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 
     public function create_ajax()

@@ -59,42 +59,4 @@
             </div>
         </div>
     </form>
-    <script>
-        $(document).ready(function() {
-            $("#form-delete").on('submit', function(e) {
-                e.preventDefault(); // Mencegah redirect
-                var form = $(this);
-                
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST', 
-                    data: form.serialize(),
-                    success: function(response) {
-                        if (response.status) {
-                            $('#myModal').modal('hide');
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: response.message
-                            });
-                            $('#table_barang').DataTable().ajax.reload();
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: response.message
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: 'Gagal menghubungi server.'
-                        });
-                    }
-                });
-            });
-        });
-    </script>
 @endempty

@@ -63,46 +63,4 @@
             </div>
         </div>
     </form>
-    <script>
-        $(document).ready(function() {
-            $("#form-edit").on('submit', function(e) {
-                e.preventDefault(); 
-                var form = $(this);
-                
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST',
-                    data: form.serialize(),
-                    success: function(response) {
-                        if (response.status) {
-                            $('#myModal').modal('hide');
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: response.message
-                            });
-                            $('#table_barang').DataTable().ajax.reload();
-                        } else {
-                            $('.error-text').text('');
-                            $.each(response.msgField, function(prefix, val) {
-                                $('#error-' + prefix).text(val[0]);
-                            });
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: response.message
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: 'Gagal menghubungi server.'
-                        });
-                    }
-                });
-            });
-        });
-    </script>
 @endempty

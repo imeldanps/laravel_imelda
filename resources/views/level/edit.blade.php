@@ -1,8 +1,10 @@
 @extends('layouts.template')
+
 @section('content')
 <div class="card card-outline card-primary">
     <div class="card-header">
         <h3 class="card-title">{{ $page->title }}</h3>
+        <div class="card-tools"></div>
     </div>
     <div class="card-body">
         @empty($level)
@@ -10,12 +12,11 @@
                 <h5><i class="icon fas fa-ban"></i> Kesalahan!</h5>
                 Data yang Anda cari tidak ditemukan.
             </div>
-            <a href="{{ url('level') }}" class="btn btn-sm btn-default mt-2">Kembali</a>
+            <a href="{{ url('level') }}" class="btn btn-sm btn-default">Kembali</a>
         @else
             <form method="POST" action="{{ url('/level/'.$level->level_id) }}" class="form-horizontal">
                 @csrf
-                {!! method_field('PUT') !!}
-                <div class="form-group row">
+                {!! method_field('PUT') !!} <div class="form-group row">
                     <label class="col-1 control-label col-form-label">Kode Level</label>
                     <div class="col-11">
                         <input type="text" class="form-control" id="level_kode" name="level_kode" value="{{ old('level_kode', $level->level_kode) }}" required>

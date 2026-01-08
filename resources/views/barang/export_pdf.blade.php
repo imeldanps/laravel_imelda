@@ -1,6 +1,7 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
         body {
             font-family: "Times New Roman", Times, serif;
@@ -58,13 +59,17 @@
 <body>
     <table class="border-bottom-header">
         <tr>
-            <td width="15%" class="text-center"><img src="{{ asset('polinema-bw.png') }}"></td>
+            <td width="15%" class="text-center">
+                <img src="{{ public_path('stimata.jpeg') }}" class="image">
+            </td>
             <td width="85%">
                 <span class="text-center d-block font-11 font-bold mb-1">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</span>
-                <span class="text-center d-block font-13 font-bold mb-1">POLITEKNIK NEGERI MALANG</span>
-                <span class="text-center d-block font-10">Jl. Soekarno-Hatta No. 9 Malang 65141</span>
-                <span class="text-center d-block font-10">Telepon (0341) 404424 Pes. 101-105, 0341-404420, Fax. (0341) 404420</span>
-                <span class="text-center d-block font-10">Laman: www.polinema.ac.id</span>
+                <span class="text-center d-block font-13 font-bold mb-1">SEKOLAH TINGGI MANAJEMEN INFORMATIKA DAN KOMPUTER</span>
+                <span class="text-center d-block font-13 font-bold mb-1">PPKIA PRADNYA PARAMITA</span>
+                <span class="text-center d-block font-13 font-bold mb-1">MALANG</span>
+                <span class="text-center d-block font-10">Jl. Laksda Adi Sucipto No.249a Malang 65126</span>
+                <span class="text-center d-block font-10">Telepon (0341) 412699</span>
+                <span class="text-center d-block font-10">Laman: www.stimata.ac.id</span>
             </td>
         </tr>
     </table>
@@ -74,7 +79,7 @@
     <table class="border-all">
         <thead>
             <tr>
-                <th class="text-center">No</th>
+                <th>No</th>
                 <th>Kode Barang</th>
                 <th>Nama Barang</th>
                 <th class="text-right">Harga Beli</th>

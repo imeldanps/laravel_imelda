@@ -59,6 +59,9 @@ ack">
                         <div class="col-4">
                             <button type="submit" class="btn btn-primary btn-block">Sign In</button>
                         </div>
+                        <p class="mb-0">
+                                <a href="{{ url('register') }}" class="text-center">Belum punya akun? Daftar disini</a>
+                            </p>
                         <!-- /.col -->
                     </div>
                 </form>

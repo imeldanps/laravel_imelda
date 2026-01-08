@@ -6,12 +6,17 @@
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <button onclick="modalAction('{{ url('/barang/import') }}')" class="btn btn-info">Import Barang</button>
-                
-                <a href="{{ url('/barang/export_excel') }}" class="btn btn-primary"><i class="fa fa-file-excel"></i> Export Excel</a>
-                
-                <a href="{{ url('/barang/export_pdf') }}" class="btn btn-warning"><i class="fa fa-file-pdf"></i> Export PDF</a>
-                
-                <button onclick="modalAction('{{ url('/barang/create_ajax') }}')" class="btn btn-success">Tambah Data (Ajax)</button>
+
+                <a href="{{ url('/barang/export_excel') }}" class="btn btn-primary"><i class="fa fa-file-excel"></i> Export
+                    Excel</a>
+
+                <a href="{{ url('/barang/export_pdf') }}" class="btn btn-warning"><i class="fa fa-file-pdf"></i> Export
+                    PDF</a>
+
+                <a href="{{ url('/barang/create') }}" class="btn btn-primary">Tambah Data</a>
+
+                <button onclick="modalAction('{{ url('/barang/create_ajax') }}')" class="btn btn-success">Tambah Data
+                    (Ajax)</button>
             </div>
         </div>
         <div class="card-body">
@@ -40,7 +45,7 @@
             @if(session('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
-            
+
             <table class="table table-bordered table-striped table-hover table-sm" id="table_barang">
                 <thead>
                     <tr>
@@ -57,101 +62,148 @@
         </div>
     </div>
 
-    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true"></div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static"
+        data-keyboard="false" data-width="75%" aria-hidden="true"></div>
 @endsection
 
 @push('css')
 @endpush
 
 @push('js')
-<script>
-    function modalAction(url = '') {
-        $('#myModal').load(url, function() {
-            $('#myModal').modal('show');
-        });
-    }
+    <script>
+        function modalAction(url = '') {
+            $('#myModal').load(url, function () {
+                $('#myModal').modal('show');
+            });
+        }
 
-    var dataBarang;
-    $(document).ready(function() {
-        dataBarang = $('#table_barang').DataTable({
-            // ServerSide wajib true untuk menangani data besar
-            serverSide: true, 
-            processing: true,
-            ajax: {
-                "url": "{{ url('barang/list') }}",
-                "dataType": "json",
-                "type": "POST",
-                "headers": {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                "data": function (d) {
-                    // Mengirim data filter kategori ke controller
-                    d.filter_kategori = $('.filter_kategori').val();
-                }
-            },
-            columns: [
-                {
-                    data: "DT_RowIndex", 
-                    className: "text-center",
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: "barang_kode",
-                    className: "",
-                    orderable: true,
-                    searchable: true
-                },
-                {
-                    data: "barang_nama",
-                    className: "",
-                    orderable: true,
-                    searchable: true
-                },
-                {
-                    data: "harga_beli",
-                    className: "",
-                    orderable: true,
-                    searchable: false,
-                    render: function(data, type, row){
-                        // Format mata uang Rupiah
-                        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data);
+        var dataBarang;
+        $(document).ready(function () {
+            dataBarang = $('#table_barang').DataTable({
+                serverSide: true,
+                processing: true,
+                ajax: {
+                    "url": "{{ url('barang/list') }}",
+                    "dataType": "json",
+                    "type": "POST",
+                    "headers": {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    "data": function (d) {
+                        d.filter_kategori = $('.filter_kategori').val();
                     }
                 },
-                {
-                    data: "harga_jual",
-                    className: "",
-                    orderable: true,
-                    searchable: false,
-                    render: function(data, type, row){
-                        // Format mata uang Rupiah
-                        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data);
+                columns: [
+                    {
+                        data: "DT_RowIndex",
+                        className: "text-center",
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: "barang_kode",
+                        className: "",
+                        orderable: true,
+                        searchable: true
+                    },
+                    {
+                        data: "barang_nama",
+                        className: "",
+                        orderable: true,
+                        searchable: true
+                    },
+                    {
+                        data: "harga_beli",
+                        className: "",
+                        orderable: true,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data);
+                        }
+                    },
+                    {
+                        data: "harga_jual",
+                        className: "",
+                        orderable: true,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data);
+                        }
+                    },
+                    {
+                        data: "kategori.kategori_nama",
+                        className: "",
+                        orderable: true,
+                        searchable: false
+                    },
+                    {
+                        data: "aksi",
+                        className: "",
+                        orderable: false,
+                        searchable: false
                     }
-                },
-                {
-                    data: "kategori.kategori_nama", // Mengambil nama kategori dari relasi
-                    className: "",
-                    orderable: true,
-                    searchable: false
-                },
-                {
-                    data: "aksi",
-                    className: "",
-                    orderable: false,
-                    searchable: false
+                ]
+            });
+
+            // Trigger pencarian
+            $('#table_barang_filter input').unbind().bind().on('keyup', function (e) {
+                if (e.keyCode == 13) {
+                    dataBarang.search(this.value).draw();
                 }
-            ]
-        });
+            });
 
-        $('#table_barang_filter input').unbind().bind().on('keyup', function(e){
-            if(e.keyCode == 13){ 
-                dataBarang.search(this.value).draw();
-            }
-        });
+            // Trigger filter kategori
+            $('.filter_kategori').change(function () {
+                dataBarang.draw();
+            });
 
-        $('.filter_kategori').change(function(){
-            dataBarang.draw();
+            // --- UPDATE EVENT DELEGATION UNTUK MENANGANI FILE UPLOAD ---
+            $('#myModal').on('submit', '#form-tambah, #form-edit, #form-delete, #form-import', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var actionUrl = form.attr('action');
+                var method = form.attr('method');
+
+                // Khusus untuk Form Import (Upload File)
+                // Kita gunakan FormData agar file terkirim
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: actionUrl,
+                    type: method,
+                    data: formData,
+                    contentType: false, // Wajib false untuk upload file
+                    processData: false, // Wajib false untuk upload file
+                    success: function (response) {
+                        if (response.status) {
+                            $('#myModal').modal('hide');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message
+                            });
+                            dataBarang.ajax.reload();
+                        } else {
+                            $('.error-text').text('');
+                            $.each(response.msgField, function (prefix, val) {
+                                $('#error-' + prefix).text(val[0]);
+                            });
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: 'Gagal menghubungi server.'
+                        });
+                    }
+                });
+            });
         });
-    });
-</script>
+    </script>
 @endpush
